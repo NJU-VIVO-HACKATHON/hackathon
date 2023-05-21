@@ -164,7 +164,7 @@ func CreatePosts(c *gin.Context) {
 		return
 	}
 
-	_, _, err := repository.CreatePost(model.Post{
+	pid, _, err := repository.CreatePost(model.Post{
 		Uid:     uid.(*int64),
 		Content: postInfo.Content,
 		Title:   postInfo.Title,
@@ -175,7 +175,7 @@ func CreatePosts(c *gin.Context) {
 		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
 		return
 	}
-	c.Status(http.StatusOK)
+	c.IndentedJSON(http.StatusOK, gin.H{"pid": int(pid)})
 
 }
 
