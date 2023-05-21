@@ -157,12 +157,19 @@ func EditPosts(c *gin.Context) {
 	db, _ := repository.GetDataBase()
 	var postInfo PostInfo
 
+	pidStr := c.Param("pid")
+	pid, err := strconv.ParseInt(pidStr, 10, 64)
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		return
+	}
+
 	if err := c.BindJSON(&postInfo); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	err := repository.EditPost(postInfo.Pid, &model.Post{
+	err = repository.EditPost(pid, &model.Post{
 		Content: postInfo.Content,
 		Title:   postInfo.Title,
 		Cover:   postInfo.Cover,
@@ -176,6 +183,23 @@ func EditPosts(c *gin.Context) {
 
 }
 
+// DelPosts 删除帖子
+func DelPosts(c *gin.Context) {
+	db, _ := repository.GetDataBase()
+	pidStr := c.Param("pid")
+	pid, err := strconv.ParseInt(pidStr, 10, 64)
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		return
+	}
+	err = repository.DeletePost(pid, db)
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
 func GetMyTags(c *gin.Context)  {}
 func GetHistory(c *gin.Context) {}
 func GetAllTags(c *gin.Context) {}
@@ -184,7 +208,6 @@ func GetPosts(c *gin.Context)   {}
 func GetPostContext(c *gin.Context) {}
 func LocalPosts(c *gin.Context)     {}
 func GetComments(c *gin.Context)    {}
-func DelPosts(c *gin.Context)       {}
 
 func Attachment(c *gin.Context)  {}
 func SearchPosts(c *gin.Context) {}

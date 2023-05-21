@@ -161,7 +161,7 @@ func EditPost(pid int64, newPost *model.Post, db *gorm.DB) error {
 }
 
 // DeletePost 删除帖子
-func DeletePost(pid *string, db *gorm.DB) error {
+func DeletePost(pid int64, db *gorm.DB) error {
 	result := db.Delete(&model.Post{}, pid)
 	if result.Error != nil {
 		log.Println("File to delete post", result.Error)
