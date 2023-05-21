@@ -176,17 +176,18 @@ func DeletePost(pid *string, db *gorm.DB) error {
 }
 
 // GetPosts 列举帖子
-func GetPosts(tagId *string, db *gorm.DB) ([]*model.Post, error) {
+func GetPosts(tagId *int64, db *gorm.DB) ([]*model.Post, error) {
 	var posts []*model.Post
 	var postTags []*model.PostTag
 	var result *gorm.DB
 	if tagId != nil {
-		pids := db.Where("tagId=?", tagId).Find(&postTags).Select("pid")
+		pids := db.Where("tid=?", tagId).Find(&postTags).Select("pid")
 		//时间倒序 新帖在前
-		result = db.Where("id IN (?)", pids).Order("updated_at desc").Find(&posts)
+		result = db.Where("id IN (?)", pids).Order("updated_at desc").Omit("content").Find(&posts)
+
 	}
 
-	result = db.Order("updated_at desc").Find(&posts)
+	result = db.Order("updated_at desc").Omit("content").Find(&posts)
 
 	if result.Error != nil {
 		log.Println("File to select posts", result.Error)
@@ -195,7 +196,7 @@ func GetPosts(tagId *string, db *gorm.DB) ([]*model.Post, error) {
 	return posts, nil
 }
 
-// GetPost 获取帖子
+// GetPost 获取帖子内容
 func GetPost(pid *string, db *gorm.DB) (*model.Post, error) {
 	var post model.Post
 	result := db.First(&post, pid)

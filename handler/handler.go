@@ -56,6 +56,7 @@ func Session(c *gin.Context) {
 
 }
 
+// Authcode todo
 func Authcode(c *gin.Context) {}
 
 // GetUserInfo 获取个人信息

@@ -171,3 +171,47 @@ func TestUpdateUserInfo(t *testing.T) {
 		})
 	}
 }
+
+func TestGetPosts(t *testing.T) {
+	db, _ := GetDataBase()
+	type args struct {
+		tagId int64
+		db    *gorm.DB
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantLen int
+		wantErr bool
+	}{
+		{
+			name: "Should return all posts",
+			args: args{
+				db: db,
+			},
+			wantLen: 0,
+			wantErr: false,
+		},
+		{
+			name: "Should return posts with specified tag",
+			args: args{
+				tagId: 12,
+				db:    db,
+			},
+			wantLen: 0,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			posts, err := GetPosts(&tt.args.tagId, tt.args.db)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetPosts() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if len(posts) != tt.wantLen {
+				t.Errorf("GetPosts() got = %v posts, want %v", len(posts), tt.wantLen)
+			}
+		})
+	}
+}
