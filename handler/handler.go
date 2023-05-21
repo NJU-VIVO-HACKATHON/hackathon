@@ -141,6 +141,31 @@ func CreatePosts(c *gin.Context) {
 		Uid:     uid.(*int64),
 		Content: postInfo.Content,
 		Title:   postInfo.Title,
+		Cover:   postInfo.Cover,
+	}, db)
+
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		return
+	}
+	c.Status(http.StatusOK)
+
+}
+
+// EditPosts 编辑帖子
+func EditPosts(c *gin.Context) {
+	db, _ := repository.GetDataBase()
+	var postInfo PostInfo
+
+	if err := c.BindJSON(&postInfo); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := repository.EditPost(postInfo.Pid, &model.Post{
+		Content: postInfo.Content,
+		Title:   postInfo.Title,
+		Cover:   postInfo.Cover,
 	}, db)
 
 	if err != nil {
@@ -160,6 +185,6 @@ func GetPostContext(c *gin.Context) {}
 func LocalPosts(c *gin.Context)     {}
 func GetComments(c *gin.Context)    {}
 func DelPosts(c *gin.Context)       {}
-func EditPosts(c *gin.Context)      {}
-func Attachment(c *gin.Context)     {}
-func SearchPosts(c *gin.Context)    {}
+
+func Attachment(c *gin.Context)  {}
+func SearchPosts(c *gin.Context) {}

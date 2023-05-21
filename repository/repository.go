@@ -143,7 +143,7 @@ func CreatePost(post model.Post, db *gorm.DB) (ID uint, RowsAffected int64, err 
 }
 
 // EditPost 编辑帖子
-func EditPost(pid *string, newPost *model.Post, db *gorm.DB) error {
+func EditPost(pid int64, newPost *model.Post, db *gorm.DB) error {
 	var post model.Post
 	result := db.First(&post, pid)
 	if result.Error != nil {
