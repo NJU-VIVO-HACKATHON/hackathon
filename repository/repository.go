@@ -228,7 +228,7 @@ func SearchPosts(pageNum, pageSize int, keyword *string, db *gorm.DB) ([]*model.
 }
 
 // GetComments todo  获取评论
-func GetComments(pid, pageNum, pageSize *string, db *gorm.DB) {}
+func GetComments(pid, pageNum, pageSize *int64, db *gorm.DB) {}
 
 // PostBookMark 收藏/点赞帖子
 func PostBookMark(uid, pid, _type int64, db *gorm.DB) error {
@@ -251,5 +251,51 @@ func PostBookMark(uid, pid, _type int64, db *gorm.DB) error {
 		return result.Error
 	}
 	log.Println("Create bookmark in database success!", bookmark.ID, "row affected", result.RowsAffected)
+	return nil
+}
+
+// CreateTag 创建标签
+func CreateTag(tag model.Tag, db *gorm.DB) (ID uint, RowsAffected int64, err error) {
+
+	result := db.Create(&tag)
+	if result.Error != nil {
+		log.Println("Fail to post tag in database", result.Error)
+		return 0, 0, result.Error
+	}
+	log.Println("Create tag in database success!", tag.ID, "row affected", result.RowsAffected)
+	return tag.ID, result.RowsAffected, nil
+}
+
+// SearchTags 搜索标签
+func SearchTags(keyword *string, pageNum, pageSize int, db *gorm.DB) ([]*model.Tag, error) {
+
+	var tags []*model.Tag
+	result := db.Where("name LIKE ?", "%"+*keyword+"%").Limit(pageSize).Offset(pageNum * pageSize).Find(&tags)
+	if result.Error != nil {
+		log.Println("File to select tags", result.Error)
+		return tags, result.Error
+	}
+	return tags, nil
+}
+
+// GetTags 获取标签
+func GetTags(db *gorm.DB) ([]*model.Tag, error) {
+	var tags []*model.Tag
+	result := db.Find(&tags)
+	if result.Error != nil {
+		log.Println("File to select tags", result.Error)
+		return tags, result.Error
+	}
+	return tags, nil
+}
+
+// InitLoveTags 初始化标签爱好
+func InitLoveTags(loveTags []*model.LoveTag, db *gorm.DB) error {
+	result := db.Updates(loveTags)
+	if result.Error != nil {
+		log.Println("File to update loveTags", result.Error)
+		return result.Error
+	}
+
 	return nil
 }

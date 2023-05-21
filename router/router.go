@@ -44,10 +44,9 @@ func SetupRouter() *gin.Engine {
 	{
 		userGroup.GET("/info", handler.GetUserInfo)         // 获取个人信息
 		userGroup.POST("/info", handler.UpdateUserInfo)     // 更新个人信息
-		userGroup.GET("/my_tags", handler.GetMyTags)        // 更新用户初始感兴趣的标签
+		userGroup.POST("/my_tags", handler.InitLoveTags)    // 更新用户初始感兴趣的标签
 		userGroup.GET("/history/:type", handler.GetHistory) // 获取足迹
 	}
-	r.GET("/tags", handler.GetAllTags) // 获取所有基本标签
 
 	postGroup := r.Group("/posts", JwtAuthMiddleware) // 首页&帖子模块
 	{
@@ -65,8 +64,15 @@ func SetupRouter() *gin.Engine {
 			postGroup.DELETE("", handler.DelPosts)              // 删除帖子
 		}
 
-		postGroup.POST(" /posts/:pid/bookmark/:type", handler.PostBookmark) //点赞/收藏 / 取消点赞/收藏  帖子
+		postGroup.POST("/:pid/bookmark/:type", handler.PostBookmark) //点赞/收藏 / 取消点赞/收藏  帖子
 	}
+
+	tagGroup := r.Group("tags", JwtAuthMiddleware)
+	{
+		tagGroup.POST("", handler.CreateTag) //创建标签
+		tagGroup.GET("", handler.SearchTags) //搜索标签
+	}
+	r.GET("/basic_tags", handler.GetAllTags) //获取所有基础标签
 
 	//上传附件
 	r.POST("/attachment", handler.Attachment)

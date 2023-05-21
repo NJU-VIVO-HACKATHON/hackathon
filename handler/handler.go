@@ -39,6 +39,11 @@ type PostInfo struct {
 	Nickname      *string `json:"nickname"`
 	Avatar        *string `json:"avatar"`
 }
+type TagInfo struct {
+	Tid   int64  `json:"tid"`
+	Name  string `json:"name"`
+	Cover string `json:"cover"`
+}
 
 // GetPageInfo 分页
 func GetPageInfo(c *gin.Context) (pageId int, pageSize int) {
@@ -77,7 +82,11 @@ func Session(c *gin.Context) {
 		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
 
 	} else {
-		repository.CreateUser(session.Auth.Email, session.Auth.Sms, db)
+		_, _, err = repository.CreateUser(session.Auth.Email, session.Auth.Sms, db)
+		if err != nil {
+			c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+			return
+		}
 		c.IndentedJSON(http.StatusOK, gin.H{"token": global.GetJwt().GenerateToken(int(user.ID))})
 
 	}
@@ -358,9 +367,88 @@ func PostBookmark(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-func GetMyTags(c *gin.Context)  {}
+// InitLoveTags 初始化喜欢的标签
+func InitLoveTags(c *gin.Context) {
+	var tids []int64
+	if err := c.BindJSON(&tids); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	db, _ := repository.GetDataBase()
+	uid, isExit := c.Get("uid")
+	if !isExit {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", "uid is not exit"))
+		return
+	}
+
+	var loveTags []*model.LoveTag
+	for _, tid := range tids {
+		loveTags = append(loveTags, &model.LoveTag{Uid: uid.(int64), Tid: tid, Level: 10})
+	}
+	repository.InitLoveTags(loveTags, db)
+}
+
+// CreateTag 创建标签
+func CreateTag(c *gin.Context) {
+	db, _ := repository.GetDataBase()
+	var tag model.Tag
+	if err := c.BindJSON(&tag); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	_, _, err := repository.CreateTag(tag, db)
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
+// SearchTags 搜索标签
+func SearchTags(c *gin.Context) {
+	db, _ := repository.GetDataBase()
+	keyword := c.Query("q")
+	pageSize, pageNum := GetPageInfo(c)
+	tags, err := repository.SearchTags(&keyword, pageNum, pageSize, db)
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		return
+	}
+	var result []TagInfo
+	for _, tag := range tags {
+		result = append(result, TagInfo{
+			Tid:   int64(tag.ID),
+			Name:  tag.Name,
+			Cover: tag.Cover,
+		})
+	}
+
+	c.IndentedJSON(http.StatusOK, result)
+}
+
+// GetAllTags 获取所有基础标签
+func GetAllTags(c *gin.Context) {
+	db, _ := repository.GetDataBase()
+	tags, err := repository.GetTags(db)
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		return
+	}
+	var result []TagInfo
+	for _, tag := range tags {
+		result = append(result, TagInfo{
+			Tid:   int64(tag.ID),
+			Name:  tag.Name,
+			Cover: tag.Cover,
+		})
+	}
+
+	c.IndentedJSON(http.StatusOK, result)
+}
+
 func GetHistory(c *gin.Context) {}
-func GetAllTags(c *gin.Context) {}
 
 // LocalPosts todo 未实现
 func LocalPosts(c *gin.Context) {}
