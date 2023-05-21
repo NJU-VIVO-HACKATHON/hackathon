@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"github.com/NJU-VIVO-HACKATHON/hackathon/global"
+	"github.com/NJU-VIVO-HACKATHON/hackathon/model"
 	"github.com/NJU-VIVO-HACKATHON/hackathon/repository"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -77,7 +78,34 @@ func GetUserInfo(c *gin.Context) {
 	})
 
 }
-func UpdateUserInfo(c *gin.Context) {}
+
+// UpdateUserInfo 更新个人信息
+func UpdateUserInfo(c *gin.Context) {
+
+	db, _ := repository.GetDataBase()
+	var userInfo UserInfo
+
+	if err := c.BindJSON(&userInfo); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	uidStr := c.Param("uid")
+	uid, err := strconv.ParseInt(uidStr, 10, 64)
+
+	err = repository.UpdateUserInfo(uid, model.User{
+		Email:        userInfo.Email,
+		Sms:          userInfo.Sms,
+		Nickname:     userInfo.Nickname,
+		Avatar:       userInfo.Avatar,
+		Introduction: userInfo.Introduction,
+	}, db)
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+	} else {
+		c.Status(http.StatusOK)
+	}
+
+}
 func GetMyTags(c *gin.Context)      {}
 func GetHistory(c *gin.Context)     {}
 func GetAllTags(c *gin.Context)     {}

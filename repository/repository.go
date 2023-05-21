@@ -110,7 +110,7 @@ func GetUserInfoByAuth(mode, email, sms *string, db *gorm.DB) (*model.User, erro
 }
 
 // UpdateUserInfo 更新用户信息
-func UpdateUserInfo(id int64, newUser model.User, db *gorm.DB) (model.User, error) {
+func UpdateUserInfo(id int64, newUser model.User, db *gorm.DB) error {
 
 	logger.Default.LogMode(logger.Info) // 控制日志级别为 info
 	var user model.User
@@ -118,12 +118,12 @@ func UpdateUserInfo(id int64, newUser model.User, db *gorm.DB) (model.User, erro
 
 	if result.Error != nil {
 		log.Println("File to select user", result.Error)
-		return user, result.Error
+		return result.Error
 	}
 	log.Println(user)
 	db.Model(&user).Updates(newUser)
 	log.Println(user)
 	log.Println("Update user success!", "user.UID", user.ID)
-	return user, result.Error
+	return result.Error
 
 }
