@@ -56,7 +56,7 @@ func SetupRouter() *gin.Engine {
 
 		postGroup.POST("", handler.CreatePosts) //创建帖子
 
-		postInfoGroup := postGroup.Group("/a/:pid")
+		postInfoGroup := postGroup.Group("/:pid")
 		{
 			postInfoGroup.GET("", handler.GetPostContext)       // 获取帖子内容
 			postInfoGroup.GET("/comments", handler.GetComments) // 获取评论
