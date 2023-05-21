@@ -1,10 +1,37 @@
 package router
 
 import (
+	"fmt"
+	"github.com/NJU-VIVO-HACKATHON/hackathon/global"
 	"github.com/NJU-VIVO-HACKATHON/hackathon/handler"
 	"github.com/gin-gonic/gin"
+	"log"
+	"net/http"
 	"strconv"
+	"strings"
 )
+
+// JwtAuthMiddleware 添加解析JWT的中间件
+func JwtAuthMiddleware(c *gin.Context) {
+	authorizationHeader := c.GetHeader("Authorization")
+	if authorizationHeader == "" {
+		c.Status(http.StatusForbidden)
+		c.Abort()
+		return
+	}
+	// 去除Bearer
+	if strings.HasPrefix(authorizationHeader, "Bearer ") {
+		authorizationHeader = authorizationHeader[7:]
+	}
+	log.Println(authorizationHeader)
+	claims, err := global.GetJwt().ParseToken(authorizationHeader)
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		c.Abort()
+		return
+	}
+	c.Set("uid", claims.Uid)
+}
 
 // GetPageInfo 分页
 func GetPageInfo(c *gin.Context) (pageId int, pageSize int) {
@@ -39,7 +66,7 @@ func SetupRouter() *gin.Engine {
 	}
 	r.GET("/tags", handler.GetAllTags) // 获取所有基本标签
 
-	postGroup := r.Group("/posts") // 首页&帖子模块
+	postGroup := r.Group("/posts", JwtAuthMiddleware) // 首页&帖子模块
 	{
 		postGroup.GET("", handler.GetPosts)           // 列举帖子
 		postGroup.GET("/search", handler.SearchPosts) // 搜索帖子
