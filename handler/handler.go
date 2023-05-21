@@ -318,6 +318,32 @@ func GetPostContext(c *gin.Context) {
 
 }
 
+// PostBookmark 点赞收藏
+func PostBookmark(c *gin.Context) {
+	db, _ := repository.GetDataBase()
+	uid, isExit := c.Get("uid")
+	if !isExit {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", "uid is not exit"))
+		return
+	}
+
+	_typeStr := c.Param("type")
+	pidStr := c.Param("pid")
+	_type, err := strconv.ParseInt(_typeStr, 10, 64)
+	pid, err := strconv.ParseInt(pidStr, 10, 64)
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		return
+	}
+
+	err = repository.PostBookMark(int64(uid.(int)), pid, _type, db)
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
 func GetMyTags(c *gin.Context)  {}
 func GetHistory(c *gin.Context) {}
 func GetAllTags(c *gin.Context) {}

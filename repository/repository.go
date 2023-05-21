@@ -231,3 +231,27 @@ func SearchPosts(pageNum, pageSize, keyword *string, db *gorm.DB) ([]*model.Post
 
 // GetComments todo  获取评论
 func GetComments(pid, pageNum, pageSize *string, db *gorm.DB) {}
+
+// PostBookMark 收藏/点赞帖子
+func PostBookMark(uid, pid, _type int64, db *gorm.DB) error {
+
+	var bookmark model.Bookmark
+	bookmark.Uid = &uid
+	bookmark.Pid = &pid
+
+	//0 为点赞 1为收藏
+	if _type == 0 {
+		bookmark.Like = !bookmark.Like
+	}
+	if _type == 1 {
+		bookmark.Favorite = !bookmark.Favorite
+	}
+
+	result := db.Create(&bookmark)
+	if result.Error != nil {
+		log.Println("Fail to post bookmark in database", result.Error)
+		return result.Error
+	}
+	log.Println("Create bookmark in database success!", bookmark.ID, "row affected", result.RowsAffected)
+	return nil
+}

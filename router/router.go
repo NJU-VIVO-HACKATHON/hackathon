@@ -78,10 +78,11 @@ func SetupRouter() *gin.Engine {
 		{
 			postInfoGroup.GET("", handler.GetPostContext)       // 获取帖子内容
 			postInfoGroup.GET("/comments", handler.GetComments) // 获取评论
-			postGroup.PUT("", handler.EditPosts)                //编辑帖子
-			postGroup.DELETE("", handler.DelPosts)              //点赞/收藏帖子
+			postGroup.PUT("", handler.EditPosts)                // 编辑帖子
+			postGroup.DELETE("", handler.DelPosts)              // 删除帖子
 		}
 
+		postGroup.POST(" /posts/:pid/bookmark/:type", handler.PostBookmark) //点赞/收藏 / 取消点赞/收藏  帖子
 	}
 
 	//上传附件
