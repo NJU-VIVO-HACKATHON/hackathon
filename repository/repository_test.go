@@ -78,7 +78,7 @@ func TestCreateUser(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, gotRowsAffected, err := CreateUser(tt.args.email, tt.args.sns, tt.args.db)
+			_, gotRowsAffected, err := CreateUser(&tt.args.email, &tt.args.sns, tt.args.db)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateUser() error = %v, wantErr %v", err, tt.wantErr)
 				return

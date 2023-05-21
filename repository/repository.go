@@ -1,7 +1,8 @@
 package repository
 
 import (
-	"github.com/NJU-VIVO-HACKATHON/hackathon/config"
+	"errors"
+	"github.com/NJU-VIVO-HACKATHON/hackathon/global"
 	"github.com/NJU-VIVO-HACKATHON/hackathon/model"
 	mysqlDriver "github.com/go-sql-driver/mysql"
 	"gorm.io/driver/mysql"
@@ -13,7 +14,7 @@ import (
 
 func GetDataBase() (db *gorm.DB, err error) {
 
-	dbConfig := config.GetConfig()
+	dbConfig := global.GetConfig()
 
 	// Capture connection properties.
 	cfg := mysqlDriver.Config{
@@ -56,11 +57,11 @@ func GetDataBase() (db *gorm.DB, err error) {
 }
 
 // CreateUser 创建用户
-func CreateUser(email, sms string, db *gorm.DB) (ID uint, RowsAffected int64, err error) {
+func CreateUser(email, sms *string, db *gorm.DB) (ID uint, RowsAffected int64, err error) {
 
 	user := model.User{
-		Email: email,
-		Sms:   sms,
+		Email: *email,
+		Sms:   *sms,
 	}
 	result := db.Create(&user)
 	if result.Error == nil {
@@ -82,7 +83,30 @@ func GetUserInfo(id int64, db *gorm.DB) (model.User, error) {
 
 	log.Println("Select user success!", "user.UID", user.ID)
 	return user, result.Error
+}
 
+// GetUserInfoByAuth 通过Em获取用户信息
+func GetUserInfoByAuth(email, sms *string, db *gorm.DB) (*model.User, error) {
+
+	if (email == nil && sms == nil) || (email != nil && sms != nil) {
+		return nil, errors.New("非法输入")
+	}
+
+	var user model.User
+	var result *gorm.DB
+	if email != nil {
+		result = db.Where("email=?", email).First(&user, email)
+	} else if sms != nil {
+		result = db.Where("sms=?", sms).First(&user, email)
+	}
+
+	if result.Error != nil {
+		log.Println("File to select user", result.Error)
+		return &user, result.Error
+	}
+
+	log.Println("Select user success!", "user.UID", user.ID)
+	return &user, result.Error
 }
 
 // UpdateUserInfo 更新用户信息
