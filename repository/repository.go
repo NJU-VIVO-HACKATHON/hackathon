@@ -2,24 +2,18 @@ package repository
 
 import (
 	"github.com/NJU-VIVO-HACKATHON/hackathon/config"
-	m_logger "github.com/NJU-VIVO-HACKATHON/hackathon/m-logger"
+	"github.com/NJU-VIVO-HACKATHON/hackathon/model"
 	mysqlDriver "github.com/go-sql-driver/mysql"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"log"
 	"strconv"
-	"time"
 )
 
 func GetDataBase() (db *gorm.DB, err error) {
 
 	dbConfig := config.GetConfig()
-
-	//set database  logger
-	logger, err, closeFunc := m_logger.InitLogFile("hackathon_"+time.Now().Format("20060102")+".log", "[GetDataBase]")
-	if err != nil {
-		logger.Println("Failed to init logger", err)
-	}
-	defer closeFunc()
 
 	// Capture connection properties.
 	cfg := mysqlDriver.Config{
@@ -47,13 +41,65 @@ func GetDataBase() (db *gorm.DB, err error) {
 		},
 	}
 
-	db, err = gorm.Open(mysql.Open(cfg.FormatDSN()), &gorm.Config{})
+	db, err = gorm.Open(mysql.Open(cfg.FormatDSN()), &gorm.Config{
+
+		Logger: logger.Default.LogMode(logger.Info), // 控制日志级别为 info
+	})
 
 	if err != nil {
-		logger.Println("Failed to open database", logCfg.FormatDSN())
+		log.Println("Failed to open database", logCfg.FormatDSN())
 		return nil, err
 	}
-	logger.Println("Get database success!", logCfg.FormatDSN())
+	log.Println("Get database success!", logCfg.FormatDSN())
 	return db, err
+
+}
+
+// CreateUser 创建用户
+func CreateUser(email, sms string, db *gorm.DB) (ID uint, RowsAffected int64, err error) {
+
+	user := model.User{
+		Email: email,
+		Sms:   sms,
+	}
+	result := db.Create(&user)
+	if result.Error == nil {
+		log.Println("Fail to create file log in repository", result.Error)
+	}
+	log.Println("Insert file log success!", user.ID, "row affected", result.RowsAffected)
+	return user.ID, result.RowsAffected, result.Error
+}
+
+// GetUserInfo 获取用户信息
+func GetUserInfo(id int64, db *gorm.DB) (model.User, error) {
+
+	var user model.User
+	result := db.First(&user, id)
+	if result.Error != nil {
+		log.Println("File to select user", result.Error)
+		return user, result.Error
+	}
+
+	log.Println("Select user success!", "user.UID", user.ID)
+	return user, result.Error
+
+}
+
+// UpdateUserInfo 更新用户信息
+func UpdateUserInfo(id int64, newUser model.User, db *gorm.DB) (model.User, error) {
+
+	logger.Default.LogMode(logger.Info) // 控制日志级别为 info
+	var user model.User
+	result := db.First(&user, id)
+
+	if result.Error != nil {
+		log.Println("File to select user", result.Error)
+		return user, result.Error
+	}
+	log.Println(user)
+	db.Model(&user).Updates(newUser)
+	log.Println(user)
+	log.Println("Update user success!", "user.UID", user.ID)
+	return user, result.Error
 
 }
