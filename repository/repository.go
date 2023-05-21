@@ -112,7 +112,6 @@ func GetUserInfoByAuth(mode, email, sms *string, db *gorm.DB) (*model.User, erro
 // UpdateUserInfo 更新用户信息
 func UpdateUserInfo(id int64, newUser model.User, db *gorm.DB) error {
 
-	logger.Default.LogMode(logger.Info) // 控制日志级别为 info
 	var user model.User
 	result := db.First(&user, id)
 
@@ -126,4 +125,21 @@ func UpdateUserInfo(id int64, newUser model.User, db *gorm.DB) error {
 	log.Println("Update user success!", "user.UID", user.ID)
 	return result.Error
 
+}
+
+// CreatePost 创建帖子
+func CreatePost(uidStr, title, content *string, db *gorm.DB) (ID uint, RowsAffected int64, err error) {
+	uid, err := strconv.ParseInt(*uidStr, 10, 64)
+	post := model.Post{
+		Uid:     &uid,
+		Title:   title,
+		Content: content,
+	}
+	result := db.Create(&post)
+	if result.Error != nil {
+		log.Println("Fail to post user in database", result.Error)
+		return 0, 0, result.Error
+	}
+	log.Println("Create post in database success!", post.ID, "row affected", result.RowsAffected)
+	return post.ID, result.RowsAffected, nil
 }
