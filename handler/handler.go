@@ -331,12 +331,12 @@ func GetPostContext(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusOK, PostInfo{
-		Pid:      int64(post.ID),
-		Title:    post.Title,
-		Cover:    post.Cover,
-		Nickname: user.Nickname,
-		Avatar:   user.Avatar,
-		//todo
+		Pid:           int64(post.ID),
+		Title:         post.Title,
+		Cover:         post.Cover,
+		Nickname:      user.Nickname,
+		Avatar:        user.Avatar,
+		Content:       post.Content,
 		IsLike:        false,
 		LikeCount:     post.LikeCount,
 		FavoriteCount: post.FavoriteCount,
