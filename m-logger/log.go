@@ -3,11 +3,12 @@ package m_logger
 import (
 	"log"
 	"os"
+	"path"
 )
 
-func InitLogFile(fileName, prefix string) (*log.Logger, func()) {
-
-	file, err := os.OpenFile("../log/"+fileName, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+func InitLogFile(fileName, prefix string) (*log.Logger, error, func()) {
+	filePath := path.Join("..", "target", "log", fileName)
+	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatal(err)
 
@@ -23,5 +24,5 @@ func InitLogFile(fileName, prefix string) (*log.Logger, func()) {
 
 	}
 
-	return logger, closeF
+	return logger, err, closeF
 }
