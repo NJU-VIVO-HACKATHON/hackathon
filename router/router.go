@@ -75,7 +75,8 @@ func SetupRouter() *gin.Engine {
 	r.GET("/basic_tags", handler.GetAllTags) //获取所有基础标签
 
 	//上传附件
-	r.POST("/attachment", handler.Attachment)
+	r.POST("/attachment", handler.UploadFiles)
+	r.GET("/attachment/:uuid", handler.DownloadFile)
 
 	return r
 }

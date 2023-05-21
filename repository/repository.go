@@ -227,6 +227,17 @@ func SearchPosts(pageNum, pageSize int, keyword *string, db *gorm.DB) ([]*model.
 	return posts, nil
 }
 
+// GetPostsByUid 获取用户的帖子
+func GetPostsByUid(pageNum, pageSize int, uid int64, db *gorm.DB) ([]*model.Post, error) {
+	var posts []*model.Post
+	result := db.Where("uid=?", uid).Limit(pageSize).Offset(pageNum * pageSize).Find(&posts)
+	if result.Error != nil {
+		log.Println("File to select posts", result.Error)
+		return posts, result.Error
+	}
+	return posts, nil
+}
+
 // GetComments todo  获取评论
 func GetComments(pid, pageNum, pageSize *int64, db *gorm.DB) {}
 
@@ -252,6 +263,36 @@ func PostBookMark(uid, pid, _type int64, db *gorm.DB) error {
 	}
 	log.Println("Create bookmark in database success!", bookmark.ID, "row affected", result.RowsAffected)
 	return nil
+}
+
+// GetBookMarkUserLike 获取用户点赞/收藏的文章
+func GetBookMarkUserLike(pageNum, pageSize int, uid int64, LikeType string, db *gorm.DB) ([]model.Post, error) {
+	var posts []model.Post
+	var bookmark []*model.Bookmark
+	var result *gorm.DB
+	if LikeType == "like" {
+		result = db.Where("uid=? AND like=?", uid, true).Find(&bookmark)
+	}
+	if LikeType == "favorite" {
+		result = db.Where("uid=? AND favorite=?", uid, true).Find(&bookmark)
+	}
+
+	if result.Error != nil {
+		log.Println("File to select bookmark", result.Error)
+		return nil, result.Error
+	}
+
+	var pids []*int64
+	for _, b := range bookmark {
+		pids = append(pids, b.Pid)
+	}
+	result = db.Where("id IN (?)", pids).Limit(pageSize).Offset(pageNum * pageSize).Find(&posts)
+	if result.Error != nil {
+		log.Println("File to select posts", result.Error)
+		return nil, result.Error
+	}
+
+	return posts, nil
 }
 
 // CreateTag 创建标签
@@ -298,4 +339,23 @@ func InitLoveTags(loveTags []*model.LoveTag, db *gorm.DB) error {
 	}
 
 	return nil
+}
+
+func InsertFileLog(savePath, fileName, userAgent, fileType string, fileSize int64, db *gorm.DB) (ID uint, RowsAffected int64, err error) {
+
+	//create record insert into database
+	fileLog := model.UploadFileLog{
+		FileName:  fileName,
+		UserAgent: userAgent,
+		FileType:  fileType,
+		SavePath:  savePath,
+		FileSize:  fileSize,
+	}
+	result := db.Create(&fileLog)
+	if result.Error == nil {
+
+	}
+
+	return fileLog.ID, result.RowsAffected, result.Error
+
 }

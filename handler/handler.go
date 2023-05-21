@@ -7,7 +7,10 @@ import (
 	"github.com/NJU-VIVO-HACKATHON/hackathon/repository"
 	"github.com/gin-gonic/gin"
 	"log"
+	"mime"
 	"net/http"
+	"os"
+	"path"
 	"strconv"
 )
 
@@ -448,11 +451,140 @@ func GetAllTags(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, result)
 }
 
-func GetHistory(c *gin.Context) {}
+// GetHistory 获取历史记录
+func GetHistory(c *gin.Context) {
+	_type := c.Param("type")
+	uid, isExist := c.Get("uid")
+
+	if !isExist {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", "uid is not exit"))
+		return
+	}
+	pageSize, pageNum := GetPageInfo(c)
+	db, _ := repository.GetDataBase()
+	var postInfos []PostInfo
+
+	if _type == "my" {
+		posts, error := repository.GetPostsByUid(pageNum, pageSize, uid.(int64), db)
+		if error != nil {
+			c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", error.Error()))
+			return
+		}
+		user, error := repository.GetUserInfo(uid.(int64), db)
+		if error != nil {
+			c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", error.Error()))
+			return
+		}
+		for _, post := range posts {
+			postInfos = append(postInfos, PostInfo{
+				Pid:      int64(post.ID),
+				Title:    post.Title,
+				Cover:    post.Cover,
+				Nickname: user.Nickname,
+				Avatar:   user.Avatar,
+				//todo
+				IsLike:        false,
+				LikeCount:     post.LikeCount,
+				FavoriteCount: post.FavoriteCount,
+			})
+		}
+
+		c.IndentedJSON(http.StatusOK, postInfos)
+		return
+	}
+
+	users, err := repository.GetAllUsers(db)
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		return
+	}
+
+	var result []PostInfo
+	var posts []model.Post
+
+	posts, err = repository.GetBookMarkUserLike(pageNum, pageSize, uid.(int64), _type, db)
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err))
+		return
+	}
+
+	// 遍历用户表
+	for _, user := range users {
+		// 遍历文章表
+		for _, post := range posts {
+			// 如果文章表中存在对应的用户ID，将该行数据放入新切片
+			if int64(user.ID) == *post.Uid {
+				result = append(result, PostInfo{
+					Pid:      int64(post.ID),
+					Title:    post.Title,
+					Cover:    post.Cover,
+					Nickname: user.Nickname,
+					Avatar:   user.Avatar,
+					//todo
+					IsLike:        false,
+					LikeCount:     post.LikeCount,
+					FavoriteCount: post.FavoriteCount,
+				})
+			}
+		}
+	}
+	c.IndentedJSON(http.StatusOK, result)
+}
 
 // LocalPosts todo 未实现
 func LocalPosts(c *gin.Context) {}
 
 func GetComments(c *gin.Context) {}
 
-func Attachment(c *gin.Context) {}
+// UploadFiles 上传文件
+func UploadFiles(c *gin.Context) {
+	fieldName := c.DefaultPostForm("fieldName", "files")
+	form, err := c.MultipartForm()
+	if err != nil {
+		log.Println("Fail to get file from FormFile by fieldName", err)
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		return
+	}
+
+	files := form.File[fieldName]
+	db, _ := repository.GetDataBase()
+	for _, file := range files {
+		dst := "../target/upload/multiple/" + file.Filename
+		// Save the uploaded file to the specified directory
+		err := c.SaveUploadedFile(file, dst)
+		if err != nil {
+			c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+
+			return
+		}
+
+		userAgent := c.GetHeader("User-Agent")
+		fileType := path.Ext(file.Filename)
+		_, _, err = repository.InsertFileLog("../target/upload/", file.Filename, userAgent, fileType, file.Size, db)
+
+	}
+	c.String(http.StatusOK, fmt.Sprintf("%d files uploaded!", len(files)))
+
+}
+
+// DownloadFile 下载文件
+func DownloadFile(c *gin.Context) {
+
+	fileName := c.Param("uuid")
+	baseUrl := path.Join("..", "target", "upload")
+
+	filePath := path.Join(baseUrl, fileName)
+
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "file not found"})
+		return
+	}
+	// Get ext
+	ext := path.Ext(filePath)
+	// Set response Header
+	c.Header("Content-Type", mime.TypeByExtension(ext))
+	c.Header("Content-Disposition", "attachment; filename="+fileName)
+	c.Status(http.StatusOK)
+	c.File(filePath)
+
+}
