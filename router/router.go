@@ -40,7 +40,7 @@ func SetupRouter() *gin.Engine {
 		sessionGroup.POST("", handler.Session)           // 登陆/注册
 		sessionGroup.POST("/authcode", handler.Authcode) // 验证码
 	}
-	userGroup := r.Group("/users/:uid") // 个人信息
+	userGroup := r.Group("/users/:uid", JwtAuthMiddleware) // 个人信息
 	{
 		userGroup.GET("/info", handler.GetUserInfo)         // 获取个人信息
 		userGroup.POST("/info", handler.UpdateUserInfo)     // 更新个人信息
