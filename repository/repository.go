@@ -191,6 +191,17 @@ func GetPosts(tag *string, db *gorm.DB) ([]*model.Post, error) {
 	return posts, nil
 }
 
+// GetPost 获取帖子
+func GetPost(pid *string, db *gorm.DB) (*model.Post, error) {
+	var post model.Post
+	result := db.First(&post, pid)
+	if result.Error != nil {
+		log.Println("File to select post", result.Error)
+		return &post, result.Error
+	}
+	return &post, nil
+}
+
 // SearchPost 搜索帖子
 func SearchPost(pageNum, pageSize, keyword *string, db *gorm.DB) ([]*model.Post, error) {
 	limit, _ := strconv.Atoi(*pageSize)
