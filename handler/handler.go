@@ -1,11 +1,12 @@
 package handler
 
 import (
-	m_logger "github.com/NJU-VIVO-HACKATHON/hackathon/m-logger"
+	"fmt"
+	"github.com/NJU-VIVO-HACKATHON/hackathon/global"
+	"github.com/NJU-VIVO-HACKATHON/hackathon/repository"
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
+	"log"
 	"net/http"
-	"time"
 )
 
 type SessionInfo struct {
@@ -19,11 +20,7 @@ type SessionInfo struct {
 
 func Session(c *gin.Context) {
 
-	logger, err, closeFunc := m_logger.InitZapLogger("hackathon_"+time.Now().Format("20060102")+".log", "[Session]")
-	if err != nil {
-		logger.Error("Failed to init zap logger", zap.Error(err))
-	}
-	defer closeFunc()
+	db, _ := repository.GetDataBase()
 
 	var session SessionInfo
 	if err := c.BindJSON(&session); err != nil {
@@ -31,7 +28,18 @@ func Session(c *gin.Context) {
 		return
 	}
 
-	//todo 连接数据库判断用户是否存在，不存在就注册，存在就校验登陆
+	// 连接数据库判断用户是否存在，不存在就注册，存在就校验登陆
+	user, err := repository.GetUserInfoByAuth(session.Auth.Email, session.Auth.Sms, db)
+	//登陆
+	if err == nil {
+		c.IndentedJSON(http.StatusOK, gin.H{"token": global.GetJwt().GenerateToken(int(user.ID))})
+	} else if err.Error() == "非法输入" {
+		log.Print(err)
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+	} else {
+		repository.CreateUser(session.Auth.Email, session.Auth.Sms, db)
+		c.IndentedJSON(http.StatusOK, gin.H{"token": global.GetJwt().GenerateToken(int(user.ID))})
+	}
 
 }
 
