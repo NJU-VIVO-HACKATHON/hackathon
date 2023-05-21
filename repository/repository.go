@@ -114,14 +114,17 @@ func UpdateUserInfo(id int64, newUser model.User, db *gorm.DB) error {
 
 	var user model.User
 	result := db.First(&user, id)
-
 	if result.Error != nil {
 		log.Println("File to select user", result.Error)
 		return result.Error
 	}
-	log.Println(user)
-	db.Model(&user).Updates(newUser)
-	log.Println(user)
+
+	result = db.Model(&user).Updates(newUser)
+	if result.Error != nil {
+		log.Println("File to update user", result.Error)
+		return result.Error
+	}
+
 	log.Println("Update user success!", "user.UID", user.ID)
 	return result.Error
 
@@ -142,4 +145,22 @@ func CreatePost(uidStr, title, content *string, db *gorm.DB) (ID uint, RowsAffec
 	}
 	log.Println("Create post in database success!", post.ID, "row affected", result.RowsAffected)
 	return post.ID, result.RowsAffected, nil
+}
+
+// EditPost 编辑帖子
+func EditPost(pid *string, newPost *model.Post, db *gorm.DB) error {
+	var post model.Post
+	result := db.First(&post, pid)
+	if result.Error != nil {
+		log.Println("File to select post", result.Error)
+		return result.Error
+	}
+
+	result = db.Model(&post).Updates(newPost)
+	if result.Error != nil {
+		log.Println("File to update post", result.Error)
+		return result.Error
+	}
+
+	return result.Error
 }
