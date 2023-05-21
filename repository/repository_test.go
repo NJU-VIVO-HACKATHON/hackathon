@@ -134,6 +134,8 @@ func TestGetUserInfo(t *testing.T) {
 
 func TestUpdateUserInfo(t *testing.T) {
 	db, _ := GetDataBase()
+	Emailstr := "ssss346346"
+	Smsstr := "ssss346346"
 	type args struct {
 		id   int64
 		user model.User
@@ -145,13 +147,14 @@ func TestUpdateUserInfo(t *testing.T) {
 		wantErr bool
 	}{
 		{
+
 			name: "testOK",
 			args: args{
 				id: 2,
 				db: db,
 				user: model.User{
-					Email: "ssss346346",
-					Sms:   "sjglajlg",
+					Email: &Emailstr,
+					Sms:   &Smsstr,
 				},
 			},
 			wantErr: false,
@@ -159,7 +162,7 @@ func TestUpdateUserInfo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := UpdateUserInfo(tt.args.id, tt.args.user, tt.args.db)
+			err := UpdateUserInfo(tt.args.id, tt.args.user, tt.args.db)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UpdateUserInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return
