@@ -72,7 +72,7 @@ func SetupRouter() *gin.Engine {
 		postGroup.GET("/search", handler.SearchPosts) // 搜索帖子
 		postGroup.GET("/local", handler.LocalPosts)   // 附近的帖子
 
-		postGroup.POST("", handler.GetPosts) //创建帖子
+		postGroup.POST("", handler.CreatePosts) //创建帖子
 
 		postInfoGroup := r.Group("/:pid")
 		{

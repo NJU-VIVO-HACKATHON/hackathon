@@ -28,6 +28,19 @@ type UserInfo struct {
 	Introduction *string `json:"introduction"`
 }
 
+type PostInfo struct {
+	Pid           int64   `json:"pid"`
+	Uid           int64   `json:"uid"`
+	Content       *string `json:"content"`
+	Cover         *string `json:"cover"`
+	Title         *string `json:"title"`
+	IsLike        bool    `json:"isLike"`
+	LikeCount     int64   `json:"likeCount"`
+	FavoriteCount int64   `json:"isFavorite"`
+	AvaTar        *string `json:"avatar"`
+	Nickname      *string `json:"nickname"`
+}
+
 func Session(c *gin.Context) {
 
 	db, _ := repository.GetDataBase()
@@ -107,10 +120,42 @@ func UpdateUserInfo(c *gin.Context) {
 	}
 
 }
-func GetMyTags(c *gin.Context)      {}
-func GetHistory(c *gin.Context)     {}
-func GetAllTags(c *gin.Context)     {}
-func GetPosts(c *gin.Context)       {}
+
+// CreatePosts 创建帖子
+func CreatePosts(c *gin.Context) {
+	db, _ := repository.GetDataBase()
+	var postInfo PostInfo
+
+	if err := c.BindJSON(&postInfo); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	uid, isExit := c.Get("uid")
+
+	if !isExit {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", "uid is not exist"))
+		return
+	}
+
+	_, _, err := repository.CreatePost(model.Post{
+		Uid:     uid.(*int64),
+		Content: postInfo.Content,
+		Title:   postInfo.Title,
+	}, db)
+
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		return
+	}
+	c.Status(http.StatusOK)
+
+}
+
+func GetMyTags(c *gin.Context)  {}
+func GetHistory(c *gin.Context) {}
+func GetAllTags(c *gin.Context) {}
+func GetPosts(c *gin.Context)   {}
+
 func GetPostContext(c *gin.Context) {}
 func LocalPosts(c *gin.Context)     {}
 func GetComments(c *gin.Context)    {}

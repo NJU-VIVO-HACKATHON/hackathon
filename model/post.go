@@ -11,4 +11,5 @@ type Post struct {
 	Content       *string
 	LikeCount     *int64
 	FavoriteCount *int64
+	Cover         *string
 }

@@ -131,13 +131,8 @@ func UpdateUserInfo(id int64, newUser model.User, db *gorm.DB) error {
 }
 
 // CreatePost 创建帖子
-func CreatePost(uidStr, title, content *string, db *gorm.DB) (ID uint, RowsAffected int64, err error) {
-	uid, err := strconv.ParseInt(*uidStr, 10, 64)
-	post := model.Post{
-		Uid:     &uid,
-		Title:   title,
-		Content: content,
-	}
+func CreatePost(post model.Post, db *gorm.DB) (ID uint, RowsAffected int64, err error) {
+
 	result := db.Create(&post)
 	if result.Error != nil {
 		log.Println("Fail to post user in database", result.Error)
