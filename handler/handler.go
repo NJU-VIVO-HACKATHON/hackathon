@@ -35,10 +35,10 @@ type PostInfo struct {
 	Cover         *string `json:"cover"`
 	Title         *string `json:"title"`
 	IsLike        bool    `json:"isLike"`
-	LikeCount     int64   `json:"likeCount"`
-	FavoriteCount int64   `json:"isFavorite"`
-	AvaTar        *string `json:"avatar"`
+	LikeCount     *int64  `json:"likeCount"`
+	FavoriteCount *int64  `json:"isFavorite"`
 	Nickname      *string `json:"nickname"`
+	Avatar        *string `json:"avatar"`
 }
 
 func Session(c *gin.Context) {
@@ -200,14 +200,129 @@ func DelPosts(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// GetPosts 列举帖子
+func GetPosts(c *gin.Context) {
+	db, _ := repository.GetDataBase()
+	tagIdStr := c.Query("tag")
+	tagId, err := strconv.ParseInt(tagIdStr, 10, 64)
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		return
+	}
+
+	posts, err := repository.GetPosts(&tagId, db)
+	users, err := repository.GetAllUsers(db)
+
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		return
+	}
+
+	// 定义一个保存交集数据的切片
+	var result []PostInfo
+
+	// 遍历用户表
+	for _, user := range users {
+		// 遍历文章表
+		for _, post := range posts {
+			// 如果文章表中存在对应的用户ID，将该行数据放入新切片
+			if int64(user.ID) == *post.Uid {
+				result = append(result, PostInfo{
+					Pid:      int64(post.ID),
+					Title:    post.Title,
+					Cover:    post.Cover,
+					Nickname: user.Nickname,
+					Avatar:   user.Avatar,
+					//todo
+					IsLike:        false,
+					LikeCount:     post.LikeCount,
+					FavoriteCount: post.FavoriteCount,
+				})
+			}
+		}
+	}
+	c.IndentedJSON(http.StatusOK, result)
+
+}
+
+// SearchPosts 搜索帖子
+func SearchPosts(c *gin.Context) {
+	db, _ := repository.GetDataBase()
+	keyword := c.Query("q")
+	pageSize := c.Query("pageSize")
+	pageNum := c.Query("pageNum")
+	posts, err := repository.SearchPosts(&pageNum, &pageSize, &keyword, db)
+	users, err := repository.GetAllUsers(db)
+
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		return
+	}
+
+	// 定义一个保存交集数据的切片
+	var result []PostInfo
+
+	// 遍历用户表
+	for _, user := range users {
+		// 遍历文章表
+		for _, post := range posts {
+			// 如果文章表中存在对应的用户ID，将该行数据放入新切片
+			if int64(user.ID) == *post.Uid {
+				result = append(result, PostInfo{
+					Pid:      int64(post.ID),
+					Title:    post.Title,
+					Cover:    post.Cover,
+					Nickname: user.Nickname,
+					Avatar:   user.Avatar,
+					//todo
+					IsLike:        false,
+					LikeCount:     post.LikeCount,
+					FavoriteCount: post.FavoriteCount,
+				})
+			}
+		}
+	}
+	c.IndentedJSON(http.StatusOK, result)
+
+}
+
+// GetPostContext 获取帖子内容
+func GetPostContext(c *gin.Context) {
+	db, _ := repository.GetDataBase()
+	pidStr := c.Param("pid")
+	pid, err := strconv.ParseInt(pidStr, 10, 64)
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		return
+	}
+
+	post, err := repository.GetPost(pid, db)
+	user, err := repository.GetUserInfo(*post.Uid, db)
+
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, PostInfo{
+		Pid:      int64(post.ID),
+		Title:    post.Title,
+		Cover:    post.Cover,
+		Nickname: user.Nickname,
+		Avatar:   user.Avatar,
+		//todo
+		IsLike:        false,
+		LikeCount:     post.LikeCount,
+		FavoriteCount: post.FavoriteCount,
+	})
+
+}
+
 func GetMyTags(c *gin.Context)  {}
 func GetHistory(c *gin.Context) {}
 func GetAllTags(c *gin.Context) {}
-func GetPosts(c *gin.Context)   {}
 
-func GetPostContext(c *gin.Context) {}
-func LocalPosts(c *gin.Context)     {}
-func GetComments(c *gin.Context)    {}
+func LocalPosts(c *gin.Context)  {}
+func GetComments(c *gin.Context) {}
 
-func Attachment(c *gin.Context)  {}
-func SearchPosts(c *gin.Context) {}
+func Attachment(c *gin.Context) {}

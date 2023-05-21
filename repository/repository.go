@@ -72,6 +72,19 @@ func CreateUser(email, sms *string, db *gorm.DB) (ID uint, RowsAffected int64, e
 	return user.ID, result.RowsAffected, nil
 }
 
+// GetAllUsers 获取所有用户
+func GetAllUsers(db *gorm.DB) ([]model.User, error) {
+	var users []model.User
+	result := db.Find(&users)
+	if result.Error != nil {
+		log.Println("File to select users", result.Error)
+		return nil, result.Error
+	}
+
+	log.Println("Select users success!")
+	return users, result.Error
+}
+
 // GetUserInfo 获取用户信息
 func GetUserInfo(id int64, db *gorm.DB) (model.User, error) {
 
@@ -192,7 +205,7 @@ func GetPosts(tagId *int64, db *gorm.DB) ([]*model.Post, error) {
 }
 
 // GetPost 获取帖子内容
-func GetPost(pid *string, db *gorm.DB) (*model.Post, error) {
+func GetPost(pid int64, db *gorm.DB) (*model.Post, error) {
 	var post model.Post
 	result := db.First(&post, pid)
 	if result.Error != nil {
@@ -202,8 +215,8 @@ func GetPost(pid *string, db *gorm.DB) (*model.Post, error) {
 	return &post, nil
 }
 
-// SearchPost 搜索帖子
-func SearchPost(pageNum, pageSize, keyword *string, db *gorm.DB) ([]*model.Post, error) {
+// SearchPosts 搜索帖子
+func SearchPosts(pageNum, pageSize, keyword *string, db *gorm.DB) ([]*model.Post, error) {
 	limit, _ := strconv.Atoi(*pageSize)
 	offset, _ := strconv.Atoi(*pageNum)
 	offset = offset * limit
