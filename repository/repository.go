@@ -1,15 +1,18 @@
 package repository
 
 import (
+	"github.com/NJU-VIVO-HACKATHON/hackathon/config"
 	m_logger "github.com/NJU-VIVO-HACKATHON/hackathon/m-logger"
 	mysqlDriver "github.com/go-sql-driver/mysql"
-	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"strconv"
 	"time"
 )
 
 func GetDataBase() (db *gorm.DB, err error) {
+
+	dbConfig := config.GetConfig()
 
 	//set database  logger
 	logger, err, closeFunc := m_logger.InitLogFile("hackathon_"+time.Now().Format("20060102")+".log", "[GetDataBase]")
@@ -19,29 +22,24 @@ func GetDataBase() (db *gorm.DB, err error) {
 	defer closeFunc()
 
 	// Capture connection properties.
-	cfg := mysqlDriver.Config{}
-	viper.SetConfigFile("./config.json")
-	if err := viper.ReadInConfig(); err == nil {
-		// 读取数据库连接信息
-		cfg = mysqlDriver.Config{
-			User:   viper.GetString("database.DBUser"),
-			Passwd: viper.GetString("database.DBPassword"),
-			DBName: viper.GetString("database.DBName"),
-			Addr:   viper.GetString("database.DBAddr"),
-			Net:    "tcp",
-			Params: map[string]string{
-				"loc":       "Local",
-				"parseTime": "True",
-			},
-		}
+	cfg := mysqlDriver.Config{
+		User:   dbConfig.Database.Username,
+		Passwd: dbConfig.Database.Password,
+		DBName: dbConfig.Database.DbName,
+		Addr:   dbConfig.Database.Hostname + ":" + strconv.Itoa(dbConfig.Database.Port),
+		Net:    "tcp",
+		Params: map[string]string{
+			"loc":       "Local",
+			"parseTime": "True",
+		},
 	}
 
 	//log cfg
 	logCfg := mysqlDriver.Config{
 		User:   "user",
 		Passwd: "password",
-		DBName: viper.GetString("database.DBName"),
-		Addr:   "localhost:8089",
+		DBName: dbConfig.Database.DbName,
+		Addr:   "localhost:8080",
 		Net:    "tcp",
 		Params: map[string]string{
 			"loc":       "Local",
@@ -57,4 +55,5 @@ func GetDataBase() (db *gorm.DB, err error) {
 	}
 	logger.Println("Get database success!", logCfg.FormatDSN())
 	return db, err
+
 }
