@@ -1,8 +1,18 @@
 package main
 
-import "github.com/NJU-VIVO-HACKATHON/hackathon/router"
+import (
+	"fmt"
+	"github.com/NJU-VIVO-HACKATHON/hackathon/global"
+	"github.com/NJU-VIVO-HACKATHON/hackathon/router"
+)
 
 func main() {
 	r := router.SetupRouter()
-	r.Run("0.0.0.0:8974")
+	cfg := global.GetConfig()
+
+	if err := r.Run(fmt.Sprintf("%s:%d",
+		cfg.Server.Host, cfg.Server.Port,
+	)); err != nil {
+		panic(err)
+	}
 }
