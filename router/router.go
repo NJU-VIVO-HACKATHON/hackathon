@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-// 分页
+// GetPageInfo 分页
 func GetPageInfo(c *gin.Context) (pageId int, pageSize int) {
 	var err error
 	pid := c.Query("pageId")
@@ -22,12 +22,12 @@ func GetPageInfo(c *gin.Context) (pageId int, pageSize int) {
 	return
 }
 
-func setupRouter() *gin.Engine {
+func SetupRouter() *gin.Engine {
 
 	r := gin.Default()
 	sessionGroup := r.Group("/session") // 用户鉴权
 	{
-		sessionGroup.POST("/", handler.Session)          // 登陆/注册
+		sessionGroup.POST("", handler.Session)           // 登陆/注册
 		sessionGroup.POST("/authcode", handler.Authcode) // 验证码
 	}
 	userGroup := r.Group("/users/:uid") // 个人信息
@@ -41,18 +41,18 @@ func setupRouter() *gin.Engine {
 
 	postGroup := r.Group("/posts") // 首页&帖子模块
 	{
-		postGroup.GET("/", handler.GetPosts)          // 列举帖子
+		postGroup.GET("", handler.GetPosts)           // 列举帖子
 		postGroup.GET("/search", handler.SearchPosts) // 搜索帖子
 		postGroup.GET("/local", handler.LocalPosts)   // 附近的帖子
 
-		postGroup.POST("/", handler.GetPosts) //创建帖子
+		postGroup.POST("", handler.GetPosts) //创建帖子
 
 		postInfoGroup := r.Group("/:pid")
 		{
-			postInfoGroup.GET("/", handler.GetPostContext)      // 获取帖子内容
+			postInfoGroup.GET("", handler.GetPostContext)       // 获取帖子内容
 			postInfoGroup.GET("/comments", handler.GetComments) // 获取评论
-			postGroup.PUT("/", handler.EditPosts)               //编辑帖子
-			postGroup.DELETE("/", handler.DelPosts)             //点赞/收藏帖子
+			postGroup.PUT("", handler.EditPosts)                //编辑帖子
+			postGroup.DELETE("", handler.DelPosts)              //点赞/收藏帖子
 		}
 
 	}

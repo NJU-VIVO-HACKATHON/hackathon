@@ -60,15 +60,16 @@ func GetDataBase() (db *gorm.DB, err error) {
 func CreateUser(email, sms *string, db *gorm.DB) (ID uint, RowsAffected int64, err error) {
 
 	user := model.User{
-		Email: *email,
-		Sms:   *sms,
+		Email: email,
+		Sms:   sms,
 	}
 	result := db.Create(&user)
-	if result.Error == nil {
-		log.Println("Fail to create file log in repository", result.Error)
+	if result.Error != nil {
+		log.Println("Fail to create user in database", result.Error)
+		return 0, 0, result.Error
 	}
-	log.Println("Insert file log success!", user.ID, "row affected", result.RowsAffected)
-	return user.ID, result.RowsAffected, result.Error
+	log.Println("Create user in database success!", user.ID, "row affected", result.RowsAffected)
+	return user.ID, result.RowsAffected, nil
 }
 
 // GetUserInfo 获取用户信息
@@ -86,18 +87,17 @@ func GetUserInfo(id int64, db *gorm.DB) (model.User, error) {
 }
 
 // GetUserInfoByAuth 通过Em获取用户信息
-func GetUserInfoByAuth(email, sms *string, db *gorm.DB) (*model.User, error) {
-
-	if (email == nil && sms == nil) || (email != nil && sms != nil) {
-		return nil, errors.New("非法输入")
-	}
+func GetUserInfoByAuth(mode, email, sms *string, db *gorm.DB) (*model.User, error) {
 
 	var user model.User
 	var result *gorm.DB
-	if email != nil {
-		result = db.Where("email=?", email).First(&user, email)
-	} else if sms != nil {
-		result = db.Where("sms=?", sms).First(&user, email)
+
+	if *mode == "email" {
+		result = db.Where("email=?", email).First(&user)
+	} else if *mode == "sms" {
+		result = db.Where("sms=?", sms).First(&user)
+	} else {
+		return nil, errors.New("非法输入")
 	}
 
 	if result.Error != nil {
@@ -106,7 +106,7 @@ func GetUserInfoByAuth(email, sms *string, db *gorm.DB) (*model.User, error) {
 	}
 
 	log.Println("Select user success!", "user.UID", user.ID)
-	return &user, result.Error
+	return &user, nil
 }
 
 // UpdateUserInfo 更新用户信息
