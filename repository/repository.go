@@ -216,12 +216,10 @@ func GetPost(pid int64, db *gorm.DB) (*model.Post, error) {
 }
 
 // SearchPosts 搜索帖子
-func SearchPosts(pageNum, pageSize, keyword *string, db *gorm.DB) ([]*model.Post, error) {
-	limit, _ := strconv.Atoi(*pageSize)
-	offset, _ := strconv.Atoi(*pageNum)
-	offset = offset * limit
+func SearchPosts(pageNum, pageSize int, keyword *string, db *gorm.DB) ([]*model.Post, error) {
+
 	var posts []*model.Post
-	result := db.Where("title LIKE ?", "%"+*keyword+"%").Limit(limit).Offset(offset).Find(&posts)
+	result := db.Where("title LIKE ?", "%"+*keyword+"%").Limit(pageSize).Offset(pageNum * pageNum).Find(&posts)
 	if result.Error != nil {
 		log.Println("File to select posts", result.Error)
 		return posts, result.Error

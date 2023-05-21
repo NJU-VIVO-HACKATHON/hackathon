@@ -27,7 +27,6 @@ type UserInfo struct {
 	Avatar       *string `json:"avatar"`
 	Introduction *string `json:"introduction"`
 }
-
 type PostInfo struct {
 	Pid           int64   `json:"pid"`
 	Uid           int64   `json:"uid"`
@@ -39,6 +38,22 @@ type PostInfo struct {
 	FavoriteCount *int64  `json:"isFavorite"`
 	Nickname      *string `json:"nickname"`
 	Avatar        *string `json:"avatar"`
+}
+
+// GetPageInfo 分页
+func GetPageInfo(c *gin.Context) (pageId int, pageSize int) {
+	var err error
+	pid := c.Query("pageId")
+	ps := c.Query("pageSize")
+	pageId, err = strconv.Atoi(pid)
+	if err != nil {
+		pageId = 0
+	}
+	pageSize, err = strconv.Atoi(ps)
+	if err != nil {
+		pageSize = 10
+	}
+	return
 }
 
 func Session(c *gin.Context) {
@@ -249,9 +264,8 @@ func GetPosts(c *gin.Context) {
 func SearchPosts(c *gin.Context) {
 	db, _ := repository.GetDataBase()
 	keyword := c.Query("q")
-	pageSize := c.Query("pageSize")
-	pageNum := c.Query("pageNum")
-	posts, err := repository.SearchPosts(&pageNum, &pageSize, &keyword, db)
+	pageSize, pageNum := GetPageInfo(c)
+	posts, err := repository.SearchPosts(pageNum, pageSize, &keyword, db)
 	users, err := repository.GetAllUsers(db)
 
 	if err != nil {

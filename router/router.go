@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -31,22 +30,6 @@ func JwtAuthMiddleware(c *gin.Context) {
 		return
 	}
 	c.Set("uid", claims.Uid)
-}
-
-// GetPageInfo 分页
-func GetPageInfo(c *gin.Context) (pageId int, pageSize int) {
-	var err error
-	pid := c.Query("pageId")
-	ps := c.Query("pageSize")
-	pageId, err = strconv.Atoi(pid)
-	if err != nil {
-		pageId = 0
-	}
-	pageSize, err = strconv.Atoi(ps)
-	if err != nil {
-		pageSize = 10
-	}
-	return
 }
 
 func SetupRouter() *gin.Engine {
