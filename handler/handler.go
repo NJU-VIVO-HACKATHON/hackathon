@@ -165,7 +165,10 @@ func CreatePosts(c *gin.Context) {
 	}
 
 	pid, _, err := repository.CreatePost(model.Post{
-		Uid:     uid.(*int64),
+		Uid: func() *int64 {
+			a := int64(uid.(int))
+			return &a
+		}(),
 		Content: postInfo.Content,
 		Title:   postInfo.Title,
 		Cover:   postInfo.Cover,
