@@ -1,10 +1,7 @@
 package config
 
 import (
-	"gopkg.in/yaml.v3"
-	"log"
-	"os"
-	"sync"
+	"time"
 )
 
 type Database struct {
@@ -16,24 +13,11 @@ type Database struct {
 }
 
 type Config struct {
-	Database Database `yaml:"database"`
+	Database Database  `yaml:"database"`
+	Jwt      JwtConfig `yaml:"jwt"`
 }
 
-var (
-	config     Config
-	configOnce sync.Once
-)
-
-func GetConfig() *Config {
-
-	configOnce.Do(func() {
-		log.Println("加载配置文件 config.yaml")
-		bs, err := os.ReadFile(os.Getenv("CONFIG_PATH"))
-		if err != nil {
-			log.Fatalln(err)
-		}
-		_ = yaml.Unmarshal(bs, &config)
-	})
-
-	return &config
+type JwtConfig struct {
+	SecretKey       string        `yaml:"secret-key"`
+	ExpiresDuration time.Duration `yaml:"expires-duration"`
 }
