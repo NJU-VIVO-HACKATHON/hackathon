@@ -13,11 +13,17 @@ type Database struct {
 }
 
 type Config struct {
-	Database Database  `yaml:"database"`
-	Jwt      JwtConfig `yaml:"jwt"`
+	Database Database     `yaml:"database"`
+	Jwt      JwtConfig    `yaml:"jwt"`
+	Server   ServerConfig `yaml:"server"`
 }
 
 type JwtConfig struct {
 	SecretKey       string        `yaml:"secret-key"`
 	ExpiresDuration time.Duration `yaml:"expires-duration"`
+}
+
+type ServerConfig struct {
+	Host string `yaml:"host"`
+	Port int    `yaml:"port"`
 }
