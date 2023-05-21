@@ -174,3 +174,19 @@ func DeletePost(pid *string, db *gorm.DB) error {
 	}
 	return result.Error
 }
+
+// GetPosts 列举帖子
+func GetPosts(tag *string, db *gorm.DB) ([]*model.Post, error) {
+	var posts []*model.Post
+	var result *gorm.DB
+	if tag != nil {
+		result = db.Where("tag=?", tag).Find(&posts)
+	} else {
+		result = db.Find(&posts)
+	}
+	if result.Error != nil {
+		log.Println("File to select posts", result.Error)
+		return posts, result.Error
+	}
+	return posts, nil
+}
