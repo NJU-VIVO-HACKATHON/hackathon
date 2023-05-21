@@ -322,7 +322,9 @@ func GetMyTags(c *gin.Context)  {}
 func GetHistory(c *gin.Context) {}
 func GetAllTags(c *gin.Context) {}
 
-func LocalPosts(c *gin.Context)  {}
+// LocalPosts todo 未实现
+func LocalPosts(c *gin.Context) {}
+
 func GetComments(c *gin.Context) {}
 
 func Attachment(c *gin.Context) {}
