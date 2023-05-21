@@ -176,13 +176,13 @@ func DeletePost(pid *string, db *gorm.DB) error {
 }
 
 // GetPosts 列举帖子
-func GetPosts(tag *string, db *gorm.DB) ([]*model.Post, error) {
+func GetPosts(tagId *string, db *gorm.DB) ([]*model.Post, error) {
 	var posts []*model.Post
+	var postTags []*model.PostTag
 	var result *gorm.DB
-	if tag != nil {
-		result = db.Where("tag=?", tag).Find(&posts)
-	} else {
-		result = db.Find(&posts)
+	if tagId != nil {
+		pids := db.Where("tagId=?", tagId).Find(&postTags).Select("pid")
+		result = db.Where("id IN (?)", pids).Find(&posts)
 	}
 	if result.Error != nil {
 		log.Println("File to select posts", result.Error)
@@ -215,3 +215,6 @@ func SearchPost(pageNum, pageSize, keyword *string, db *gorm.DB) ([]*model.Post,
 	}
 	return posts, nil
 }
+
+// GetComments todo  获取评论
+func GetComments(pid, pageNum, pageSize *string, db *gorm.DB) {}
