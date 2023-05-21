@@ -1,12 +1,10 @@
 package config
 
 import (
-	m_logger "github.com/NJU-VIVO-HACKATHON/hackathon/m-logger"
 	"gopkg.in/yaml.v3"
 	"log"
 	"os"
 	"sync"
-	"time"
 )
 
 type Database struct {
@@ -27,12 +25,6 @@ var (
 )
 
 func GetConfig() *Config {
-	//set logger
-	logger, err, closeFunc := m_logger.InitLogFile("hackathon_"+time.Now().Format("20060102")+".log", "[GetConfig]")
-	if err != nil {
-		logger.Println("Failed to init logger", err)
-	}
-	defer closeFunc()
 
 	configOnce.Do(func() {
 		log.Println("加载配置文件 config.yaml")
