@@ -182,8 +182,12 @@ func GetPosts(tagId *string, db *gorm.DB) ([]*model.Post, error) {
 	var result *gorm.DB
 	if tagId != nil {
 		pids := db.Where("tagId=?", tagId).Find(&postTags).Select("pid")
-		result = db.Where("id IN (?)", pids).Find(&posts)
+		//时间倒序 新帖在前
+		result = db.Where("id IN (?)", pids).Order("updated_at desc").Find(&posts)
 	}
+
+	result = db.Order("updated_at desc").Find(&posts)
+
 	if result.Error != nil {
 		log.Println("File to select posts", result.Error)
 		return posts, result.Error
