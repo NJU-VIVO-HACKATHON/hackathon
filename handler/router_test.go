@@ -1,4 +1,4 @@
-package router
+package handler
 
 import (
 	"bytes"
@@ -225,6 +225,19 @@ func getPost(t *testing.T, r http.Handler, pid int) gin.H {
 	return responseBody
 }
 
+func deletePost(t *testing.T, r http.Handler, pid int) {
+	token, _ := getUserToken(t, r, "email")
+	assert.NotEmpty(t, token)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/posts/%d", pid), nil)
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+	r.ServeHTTP(w, req)
+
+	// 检查返回结果是否符合预期
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
 func TestCreatePostAndGet(t *testing.T) {
 	r := SetupRouter()
 	expectTitle := "testTitle" + getRandomString()
@@ -237,4 +250,42 @@ func TestCreatePostAndGet(t *testing.T) {
 	assert.Equal(t, expectTitle, actualPost["title"])
 	assert.Equal(t, expectContent, actualPost["content"])
 	assert.Equal(t, expectCover, actualPost["cover"])
+}
+
+func TestDeletePost(t *testing.T) {
+	r := SetupRouter()
+	expectTitle := "testTitle" + getRandomString()
+	expectContent := "testContent" + getRandomString()
+	expectCover := "testCover" + getRandomString()
+
+	pid := addPost(t, r, expectTitle, expectContent, expectCover)
+	log.Println("pid:", pid)
+
+	deletePost(t, r, pid)
+}
+
+func listPosts(t *testing.T, r http.Handler) []gin.H {
+	token, _ := getUserToken(t, r, "email")
+	assert.NotEmpty(t, token)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/posts", nil)
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+	r.ServeHTTP(w, req)
+
+	// 检查返回结果是否符合预期
+	assert.Equal(t, http.StatusOK, w.Code)
+	var responseBody []gin.H
+	bs := w.Body.Bytes()
+	err := json.Unmarshal(bs, &responseBody)
+	assert.NoError(t, err)
+	return responseBody
+}
+
+func TestListPost(t *testing.T) {
+	r := SetupRouter()
+	_ = addPost(t, r, "testTitle1", "testContent1", "testCover1")
+	_ = addPost(t, r, "testTitle2", "testContent2", "testCover2")
+	_ = addPost(t, r, "testTitle3", "testContent3", "testCover3")
+
 }
