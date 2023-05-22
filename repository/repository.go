@@ -319,7 +319,7 @@ func SearchTags(keyword *string, pageNum, pageSize int, db *gorm.DB) ([]*model.T
 	return tags, nil
 }
 
-// GetTags 获取标签
+// GetTags 获取所有标签
 func GetTags(db *gorm.DB) ([]*model.Tag, error) {
 	var tags []*model.Tag
 	result := db.Find(&tags)
@@ -328,6 +328,44 @@ func GetTags(db *gorm.DB) ([]*model.Tag, error) {
 		return tags, result.Error
 	}
 	return tags, nil
+}
+
+// GetTagByPid  获取某个文章的标签
+func GetTagByPid(pid int64, db *gorm.DB) ([]*model.Tag, error) {
+	var tags []*model.Tag
+	var postTags []*model.PostTag
+	result := db.Where("pid=?", pid).Find(&postTags)
+	for _, postTag := range postTags {
+		var tag model.Tag
+		result := db.Where("id=?", postTag.Tid).Find(&tag)
+		if result.Error != nil {
+			log.Println("File to select tag", result.Error)
+			return tags, result.Error
+		}
+		tags = append(tags, &tag)
+	}
+
+	if result.Error != nil {
+		log.Println("File to select tag", result.Error)
+		return tags, result.Error
+	}
+	return tags, nil
+}
+
+// PostPostTags 为文章添加标签
+func PostPostTags(pid int64, tids []*int64, db *gorm.DB) error {
+	for _, tid := range tids {
+
+		result := db.Create(model.PostTag{
+			Pid: pid,
+			Tid: *tid,
+		})
+		if result.Error != nil {
+			log.Println("Fail to post tag in database", result.Error)
+			return result.Error
+		}
+	}
+	return nil
 }
 
 // InitLoveTags 初始化标签爱好

@@ -591,3 +591,40 @@ func DownloadFile(c *gin.Context) {
 	c.File(filePath)
 
 }
+
+// GetPostTags 获取文章标签
+func GetPostTags(c *gin.Context) {
+	db, _ := repository.GetDataBase()
+	var tags []*model.Tag
+
+	pidStr := c.Param("pid")
+	pid, _ := strconv.Atoi(pidStr)
+
+	tags, err := repository.GetTagByPid(int64(pid), db)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.IndentedJSON(http.StatusOK, tags)
+}
+
+// PostPostTags 添加文章标签
+func PostPostTags(c *gin.Context) {
+	pidStr := c.Param("pid")
+	pid, _ := strconv.Atoi(pidStr)
+	var tids []*int64
+
+	if err := c.BindJSON(&tids); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	db, _ := repository.GetDataBase()
+
+	err := repository.PostPostTags(int64(pid), tids, db)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.Status(http.StatusOK)
+
+}

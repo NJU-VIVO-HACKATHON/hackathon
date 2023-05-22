@@ -61,6 +61,8 @@ func SetupRouter() *gin.Engine {
 			postInfoGroup.GET("/comments", GetComments) // 获取评论
 			postInfoGroup.PUT("", EditPosts)            // 编辑帖子
 			postInfoGroup.DELETE("", DelPosts)          // 删除帖子
+			postGroup.POST("/tags", PostPostTags)       // 修改文章标注标签
+			postGroup.POST("/tags", GetPostTags)        // 获取文章标注标签
 		}
 
 		postGroup.POST("/:pid/bookmark/:type", PostBookmark) //点赞/收藏 / 取消点赞/收藏  帖子
