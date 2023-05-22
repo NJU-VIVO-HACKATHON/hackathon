@@ -234,10 +234,9 @@ func DelPosts(c *gin.Context) {
 func GetPosts(c *gin.Context) {
 	db, _ := repository.GetDataBase()
 	tagIdStr := c.Query("tag")
-	tagId, err := strconv.ParseInt(tagIdStr, 10, 64)
-	if err != nil {
-		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
-		return
+	var tagId int64
+	if tagIdStr != "" {
+		tagId, _ = strconv.ParseInt(tagIdStr, 10, 64)
 	}
 
 	posts, err := repository.GetPosts(&tagId, db)

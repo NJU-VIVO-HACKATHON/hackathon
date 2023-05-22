@@ -284,8 +284,25 @@ func listPosts(t *testing.T, r http.Handler) []gin.H {
 
 func TestListPost(t *testing.T) {
 	r := SetupRouter()
-	_ = addPost(t, r, "testTitle1", "testContent1", "testCover1")
-	_ = addPost(t, r, "testTitle2", "testContent2", "testCover2")
-	_ = addPost(t, r, "testTitle3", "testContent3", "testCover3")
+
+	pid1 := addPost(t, r, "testTitle1", "testContent1", "testCover1")
+	pid2 := addPost(t, r, "testTitle2", "testContent2", "testCover2")
+	pid3 := addPost(t, r, "testTitle3", "testContent3", "testCover3")
+
+	pids := []int{pid1, pid2, pid3}
+	posts := listPosts(t, r)
+
+	for _, pid := range pids {
+		exists := func(pid int) bool {
+			for _, post := range posts {
+				if post["pid"] == float64(pid) {
+					return true
+				}
+			}
+
+			return false
+		}(pid)
+		assert.True(t, exists)
+	}
 
 }
