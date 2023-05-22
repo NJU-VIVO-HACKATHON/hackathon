@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/NJU-VIVO-HACKATHON/hackathon/global"
-	"github.com/NJU-VIVO-HACKATHON/hackathon/router"
+	"github.com/NJU-VIVO-HACKATHON/hackathon/handler"
 )
 
 func main() {
-	r := router.SetupRouter()
+	r := handler.SetupRouter()
 	cfg := global.GetConfig()
 
 	if err := r.Run(fmt.Sprintf("%s:%d",
